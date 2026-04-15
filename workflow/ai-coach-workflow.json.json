@@ -1,0 +1,485 @@
+{
+  "name": "entrenador_personal",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtHour": 19
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        160,
+        -240
+      ],
+      "id": "d792682f-e721-4d05-ac4b-25ae6f75b82c",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 20
+      },
+      "type": "n8n-nodes-base.strava",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        0
+      ],
+      "id": "319f5ddc-7a1d-4830-b892-35f41ee4267d",
+      "name": "Get many activities",
+      "credentials": {
+        "stravaOAuth2Api": {
+          "id": "HUowCRJlOE6zGgwB",
+          "name": "Strava account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ecb9281-4f38-4358-b98f-f0c09c7246a0",
+              "name": "name:",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "5a2e0804-4ab8-4450-bf3f-28bf2dc970e1",
+              "name": "Deporte:",
+              "value": "={{ $json.sport_type }}",
+              "type": "string"
+            },
+            {
+              "id": "66ac3777-5533-40cf-99bc-a8b2a7dc78ff",
+              "name": "Distancia (km):",
+              "value": "={{ ($json.distance / 1000).toFixed(2) }}",
+              "type": "number"
+            },
+            {
+              "id": "f540df9a-ba20-4047-8166-bab972b118d0",
+              "name": "Duración (min):",
+              "value": "={{ ($json.moving_time / 60).toFixed(0) }}",
+              "type": "number"
+            },
+            {
+              "id": "740eae40-d9ca-469f-ab2c-0d9dee17c8d9",
+              "name": "Fecha:",
+              "value": "={{ $json.start_date.toDateTime(\"\") }}",
+              "type": "string"
+            },
+            {
+              "id": "9dbd73e8-b914-42cb-a82c-ca3ddb30d92a",
+              "name": "Avg FC",
+              "value": "={{ $json.average_heartrate }}",
+              "type": "number"
+            },
+            {
+              "id": "819da2c8-d19a-47df-85d5-df58b8804f1c",
+              "name": "Max FC",
+              "value": "={{ $json.max_heartrate }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        0
+      ],
+      "id": "5d05ed50-46af-457e-ac5b-ffe23a20917b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3-flash-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=IMPORTANTE: Hoy es {{ $now.toFormat('yyyy-MM-dd') }}.\nGenera las fechas de la rutina (\"dia\") comenzando a partir de mañana (lunes) y para los próximos 7 días consecutivos. Usa estrictamente el formato YYYY-MM-DD.\n\nActúa como un entrenador de triatlón de élite y coach de mentalidad de alto rendimiento. Mi objetivo es realizar una pretemporada excelente y progresar estratégicamente hacia mis grandes metas de 2026: 21K (23 de agosto, objetivo sub 2h), Maratón 42K (20 de septiembre, objetivo sub 4h) e Ironman 70.3 (4 de octubre, objetivo <6h).\n\nInstrucciones de análisis:\nRevisa detenidamente mis métricas de los entrenamientos de la semana anterior (lunes a domingo). Evalúa mi rendimiento, fatiga y adherencia, y diseña el plan de la próxima semana aplicando sobrecarga progresiva para asegurar que llego a las metas de 2026 en mi mejor forma.\n\nRestricciones y Estructura Semanal Estricta (Horario laboral: 09:00 a 18:30):\n\nLunes: Descanso total. No generar eventos JSON para este día.\n\nMartes: Running a las 05:00 AM. Sesión corta e intensa enfocada en pasadas, velocidad, intervalos o cuestas.\n\nMiércoles: Natación de 08:00 a 09:00 AM (hora_inicio: \"08:00\", duracion_minutos: 60).\n\nJueves: Ciclismo a las 05:00 AM (Sesión complementaria para cumplir la meta de 2 sesiones semanales).\n\nViernes: Natación de 08:00 a 09:00 AM (hora_inicio: \"08:00\", duracion_minutos: 60).\n\nSábado: Entrenamiento de Bloque/Transición (Brick) a las 09:00 AM (hora_inicio: \"09:00\"). Debe ser el fondo de ciclismo largo seguido inmediatamente por una sesión de running para adaptar las piernas. Registra todo en un solo evento JSON bajo el deporte \"Ciclismo/Running\".\n\nDomingo: Running a las 05:00 AM. Sesión de fondo / tirada larga aeróbica.\n\nTu respuesta DEBE tener exactamente esta estructura, sin excepciones ni texto adicional:\n\n[RESUMEN Y FEEDBACK]\n(Escribe aquí tu análisis técnico de mi semana pasada, correcciones específicas y una frase motivadora de alto impacto con tono de coach exigente para prepararme mentalmente para la semana).\n\n[JSON AGENDA]\n\nJSON\n[\n  {\n    \"dia\": \"YYYY-MM-DD\",\n    \"deporte\": \"Running\",\n    \"hora_inicio\": \"05:00\",\n    \"duracion_minutos\": 60,\n    \"descripcion\": \"Intervalos: 15 min calentamiento, 8x400m, 10 min enfriamiento\"\n  }\n]"
+            },
+            {
+              "content": "={{ $json['name:'] }}\n{{ $json['Deporte:'] }}\n{{ $json['Distancia (km):'] }}\n{{ $json['Duración (min):'] }}\n{{ $json['Fecha:'] }}\n{{ $json['Avg FC'] }}\n{{ $json['Max FC'] }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        720,
+        -240
+      ],
+      "id": "3d675d34-6fed-45c6-ae6f-be68b1ef90f1",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "6Qtaxw1TPMr9PSCy",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\n// 1. Buscamos el texto de la IA en todo el objeto\nfunction encontrarTexto(obj) {\n    if (typeof obj === 'string' && obj.includes('[JSON AGENDA]')) return obj;\n    if (obj && typeof obj === 'object') {\n        for (let key in obj) {\n            let result = encontrarTexto(obj[key]);\n            if (result) return result;\n        }\n    }\n    return \"\";\n}\n\nlet textoGemini = encontrarTexto(data);\nif (!textoGemini) {\n    textoGemini = JSON.stringify(data); // Rescate de emergencia\n}\n\nlet correo = \"\";\nlet agenda = [];\n\n// 2. Método Infalible: Cortamos el texto por posición matemática (sin usar Split ni Arrays)\nlet puntoDeCorte = textoGemini.indexOf(\"[JSON AGENDA]\");\n\nif (puntoDeCorte !== -1) {\n    // Tomamos todo lo que está ARRIBA del punto de corte\n    let textoArriba = textoGemini.substring(0, puntoDeCorte);\n    correo = textoArriba.replace(\"[RESUMEN Y FEEDBACK]\", \"\").trim();\n    \n    // Tomamos todo lo que está ABAJO del punto de corte\n    let rawAgenda = textoGemini.substring(puntoDeCorte + 13);\n\n    // 3. AUTO-REPARACIÓN DEL JSON DE GEMINI\n    let inicio = rawAgenda.indexOf(\"{\");\n    // Agregamos una doble validación por si Gemini manda el array con corchetes directamente\n    if (rawAgenda.indexOf(\"[\") !== -1 && rawAgenda.indexOf(\"[\") < inicio) {\n        inicio = rawAgenda.indexOf(\"[\");\n    }\n    \n    let fin = rawAgenda.lastIndexOf(\"}\");\n    if (rawAgenda.lastIndexOf(\"]\") > fin) {\n        fin = rawAgenda.lastIndexOf(\"]\");\n    }\n\n    if (inicio !== -1 && fin !== -1) {\n        let jsonStr = rawAgenda.substring(inicio, fin + 1);\n        \n        // Ponemos corchetes si Gemini los olvidó\n        if (!jsonStr.startsWith(\"[\")) {\n            jsonStr = \"[\" + jsonStr + \"]\";\n        }\n        if (!jsonStr.endsWith(\"]\")) {\n            jsonStr = jsonStr + \"]\";\n        }\n        \n        // Limpiamos comas basura\n        jsonStr = jsonStr.replace(/,\\s*\\]/g, \"]\");\n        \n        try {\n            agenda = JSON.parse(jsonStr);\n            \n            // --- MAGIA NUEVA: AGREGAMOS EL DETALLE DE LA AGENDA AL CORREO ---\n            correo += \"\\n\\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n\";\n            correo += \"📋 DETALLE DE LA RUTINA SEMANAL:\\n\";\n            correo += \"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\\n\\n\";\n            \n            // Recorremos cada día de entrenamiento y lo sumamos al texto del correo\n            agenda.forEach(dia => {\n                correo += `📅 ${dia.dia} | 🏅 ${dia.deporte}\\n`;\n                correo += `⏰ ${dia.hora_inicio} (${dia.duracion_minutos} min)\\n`;\n                correo += `📝 ${dia.descripcion}\\n\\n`;\n            });\n            // ----------------------------------------------------------------\n            \n        } catch(e) {\n            correo += \"\\n\\n(Aviso: No se pudo formatear la agenda al calendario).\";\n        }\n    }\n} else {\n    // Si no encuentra la etiqueta, manda todo al correo\n    correo = textoGemini.replace(\"[RESUMEN Y FEEDBACK]\", \"\").trim();\n}\n\n// 4. Salida final\nreturn [{ \n    json: { \n        correo: correo, \n        agenda: agenda \n    } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        -240
+      ],
+      "id": "dfe6c789-93d5-4115-ab81-8d155f792cfb",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "agenda",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "8e23997e-b6a5-43c1-97ce-5f4e3fda66c4",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "13mwbVy4uhQ_0d8NI7jXIYGSL0l60gnYH5lSIA9SO0Jg",
+          "mode": "list",
+          "cachedResultName": "n8n - Proyecto2026",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13mwbVy4uhQ_0d8NI7jXIYGSL0l60gnYH5lSIA9SO0Jg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/13mwbVy4uhQ_0d8NI7jXIYGSL0l60gnYH5lSIA9SO0Jg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $json['Fecha:'] }}",
+            "Name": "={{ $json['name:'] }}",
+            "Deporte": "={{ $json['Deporte:'] }}",
+            "Distancia": "={{ $json['Distancia (km):'] }}",
+            "Duracion": "={{ $json['Duración (min):'] }}",
+            "Avg FC": "={{ $json['Avg FC'] }}",
+            "Max FC": "={{ $json['Max FC'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Deporte",
+              "displayName": "Deporte",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Distancia",
+              "displayName": "Distancia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Duracion",
+              "displayName": "Duracion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Avg FC",
+              "displayName": "Avg FC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Max FC",
+              "displayName": "Max FC",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        640,
+        0
+      ],
+      "id": "7c1895ed-936b-4890-b839-2f1aca223abe",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleApi": {
+          "id": "pfLHPnFqykEPI2Ds",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "f2f4f8367e1865b7385737b654052b74d77f5ddd5ab5e1075bb92f602fc9acbe@group.calendar.google.com",
+          "mode": "id"
+        },
+        "start": "={{ $json.start_datetime }}",
+        "end": "={{ $json.end_datetime }}",
+        "additionalFields": {
+          "description": "={{ $json.descripcion }}",
+          "summary": "={{ $json.deporte }} | Ironman 70.3 Training"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1440,
+        0
+      ],
+      "id": "ac9a8f4d-726c-45fe-a710-79fcc8c470ef",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "9zleG1UF5vxJyLeG",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -240
+      ],
+      "id": "bac8970d-db9e-41b1-8796-9e90d78944aa",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "fromEmail": "veraramirez12@gmail.com",
+        "toEmail": "veraramirez12@gmail.com",
+        "subject": "Plan de Entrenamiento Ironman 70.3",
+        "html": "=<div style=\"font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;\">\n  <h2 style=\"color: #e63946; text-align: center;\">🔥 Plan de Entrenamiento Semanal</h2>\n  <hr style=\"border: 0; border-top: 1px solid #eee; margin: 20px 0;\">\n  \n  <div style=\"font-size: 16px; color: #444; white-space: pre-wrap;\">\n    {{ $json.correo }}\n  </div>\n\n  <hr style=\"border: 0; border-top: 1px solid #eee; margin: 20px 0;\">\n  <p style=\"font-size: 13px; color: #888; text-align: center; font-style: italic;\">\n    Tu rutina detallada ya fue procesada y sincronizada con tu Google Calendar. ¡A dar el máximo esta semana!\n  </p>\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1200,
+        -240
+      ],
+      "id": "77b5af22-48d9-454d-823f-7ae4bd41d1a8",
+      "name": "Send an Email",
+      "webhookId": "49a6f740-7e88-44c2-93a5-09b9e5a11afa",
+      "credentials": {
+        "smtp": {
+          "id": "E62utGeXmmq7FrcK",
+          "name": "SMTP account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "for (const item of $input.all()) {\n  // 1. Tomamos la hora de inicio y la duración en minutos\n  let [hora, minuto] = item.json.hora_inicio.split(':').map(Number);\n  let totalMinutos = (hora * 60) + minuto + item.json.duracion_minutos;\n\n  // 2. Calculamos a qué hora exacta termina el entrenamiento\n  let finHora = Math.floor(totalMinutos / 60);\n  let finMinuto = totalMinutos % 60;\n\n  // 3. Formateamos con ceros a la izquierda (ej. 06:05:00)\n  let finHoraStr = String(finHora).padStart(2, '0');\n  let finMinutoStr = String(finMinuto).padStart(2, '0');\n\n  // 4. Creamos el formato estricto que exige Google Calendar\n  item.json.start_datetime = `${item.json.dia}T${item.json.hora_inicio}:00`;\n  item.json.end_datetime = `${item.json.dia}T${finHoraStr}:${finMinutoStr}:00`;\n\n// 4. AQUÍ LA MAGIA: Formato estricto + Zona Horaria de Argentina (-03:00)\n  item.json.start_datetime = `${item.json.dia}T${item.json.hora_inicio}:00-03:00`;\n  item.json.end_datetime = `${item.json.dia}T${finHoraStr}:${finMinutoStr}:00-03:00`;\n  \n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        0
+      ],
+      "id": "3860b57d-541a-4c46-94f3-ff82cf9b6195",
+      "name": "Code in JavaScript2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many activities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many activities": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send an Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "af94b9ee-dd37-4de5-90e9-f5b5adf73cb3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b8e2eb35037f8a8fc1aa9bbe2299b7deeddca3001327a10d4d60f6589d05f440"
+  },
+  "id": "vCh0jDgv8zZg4Zml",
+  "tags": []
+}
